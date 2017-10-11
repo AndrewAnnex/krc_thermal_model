@@ -43,6 +43,19 @@ else
     echo $QQ'.pdf  was current'
 fi
 
+cd ~/krc/Doc/v35 ; pwd   #  figs  and citations
+QQ='eclipse'
+if [[ $QQ'.tex' -nt $QQ'.pdf' ]]; then
+    echo $QQ'.tex  was newer'
+    latex $QQ			# has references
+    bibtex $QQ
+    pdflatex $QQ
+    pdflatex $QQ
+    echo '-------- Done '$QQ
+else
+    echo $QQ'.pdf  was current'
+fi
+
 cd ~/krc/Doc ; pwd   # no figs  no citations
 QQ='helplist'
 if [[ $QQ'.tex' -nt $QQ'.pdf' ]]; then

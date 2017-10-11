@@ -38,6 +38,7 @@ C 2014mar10 HK Make  REAL*8  version
 C 2014may16:aug22 HK Incorporate option of far-field file for slopes
 C 2016oct10 HK Make print after TFAR optional
 C 2017mar05 HK Improve notice when there is an error
+C 2017apr29 HK Define SJA if not using PORB
 C_End6789012345678901234567890123456789012345678901234567890123456789012_4567890
 
 C 
@@ -120,7 +121,11 @@ D     write (*,*)'TSEAS: ',J5,N5,LOPN2,IDOWN,IRL !<< ,KVALB,alb
         WRITE(IOPM,115) TIME3,'start',J5,N5
  115    FORMAT(1X,F9.3,' seconds at ',A,' of season ',I4,' of ',I4)
       ENDIF
-      IF (LPORB) CALL PORBIT (1, DJU5,SUBS,SDEC,DAU) ! Get current Ls, AU and sub-solar lat
+      IF (LPORB) THEN
+        CALL PORBIT (1, DJU5,SUBS,SDEC,DAU) ! Get current Ls, AU and sub-sol lat
+      ELSE
+        SJA=DAU                 ! TLATS uses SJA for annual average
+      ENDIF
 C
       SUBS4=SUBS                ! get R*4 version
       IF (KVALB .GT. 0) THEN

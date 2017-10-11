@@ -15,7 +15,7 @@ C                     2,3,4= error of same number in TDAY
 C                     5=no matching latitude in fff
 C                     6=number of timesteps not integral multiple of hours in fff
 C                     7=ECLIPSE failure here on in TDAY
-C_Calls  AVEDAY+  AVEYEAR+  CO2PT+  CLIMTAU'   DEDING28  EPRED8  
+C_Calls  AVEDAY+  AVEYEAR+  GASPT+  CLIMTAU'   DEDING28  EPRED8  
 C        ROTV+  SIGMA  TDAY8  TPRINT8  TUN8  VDOT+  VLPRES'  VROTV+
 C xx8 = make and call R*8 routine
 C xx' = use R*4 transfers
@@ -55,6 +55,8 @@ C   diurnal Sun motion. Also, revise method of getting tilt surface normal.
 C   Remove ancient comments and code using trigonometry to get incidence angles
 C 2017mar03 HK Fix blunder in Minnaert and Lomell-Seeliger PUH. 
 C 2017mar12 HK Add eclipse function and planetary fluxes
+C 2017may03 HK Replace calls to  CO2PT with  GASPT, enabling any condensing gas
+C 2017sep28 HK Check that Sun not below horizon for slopes
 C_End6789012345678901234567890123456789012345678901234567890123456789012_4567890
 C
       REAL*8 DERI(2,2)            ! diffuse irradiances from Delta-Eddington
@@ -64,9 +66,11 @@ C
       REAL*8 ACOSLIM,AH,AINC,ANGLE,AVEE,ATMHEAT,AVEI,AVEH
      &,BOTDOWN,BOUNCE,CC,CD,CL,COSAM,COSI,COSP,COSZLIM,COS2,COS3
      &,DIFFUSE,DIP,DIRECT,EFP,FACTOR,F23,FP,G0,G1,GHF,HUV   ! ,DIFAC
-     &,OMEGA,PCAP,PFACTOR,PCO2G,PCO2M,RANG,RLAT,RSDEC,SAZ
+     &,OMEGA,PCAP,PFACTOR,RANG,RLAT,RSDEC,SAZ
      &,SD,SL,SOLAU,SOLR,SS,TAEQ4,TATMAVE,TATMSIG
      &,TAUICE,TAUVIS,TBOT,TOPUP,TSEQ4,TSUR,TWILFAC,TWILIM
+      REAL*8 PGASG ! Partial pressure of condensible gas; current
+      REAL*8 PGASM ! " " ; initial conditions
       REAL*8 QI,QA,QH,QHS,QS      ! temporary use
       REAL*8 FXX(3),HXX(3),MXX(3),TXX(3) !  Cartesian vectors
       REAL*8 QXX(3),PXX(3) ! " ":  Q=Temp.  P=To Planetary heat source
@@ -101,7 +105,7 @@ C --------
       LOGICAL LECL              ! have daily eclipses
 
       REAL VLPRES,CLIMTAU          ! Function names. Default precision
-      REAL*8 AVEDAY,AVEYEAR,CO2PT,EPRED8     ! Function names 
+      REAL*8 AVEDAY,AVEYEAR,GASPT,EPRED8     ! Function names 
       REAL*4 DJU54,DLAT4,SUBS4  ! for *8 to *4
       REAL*4 Y4,Z4              ! for *4 to *8
       REAL*8 DHALF /0.5d0/      ! 1/2
@@ -203,18 +207,18 @@ C     get current total pressure at 0 elevation
       ELSE
         PCAP=0.
       ENDIF
-      PCO2M = (1.-FANON)*PTOTAL ! initial partial pres. of  CO2 at 0 elev
+      PGASM = (1.-FANON)*PTOTAL ! initial partial pres. of condGas at 0 elev
       IF (KPREF.EQ.0) THEN         ! constant 
         PZREF = PTOTAL             ! current total pressure at 0 elevation
-        PCO2G = PCO2M              !  partial pres. of  CO2 at 0 elev. now
+        PGASG = PGASM              !  partial pres. of condGas at 0 elev. now
       ELSEIF (KPREF.EQ.1) THEN  ! follows Viking
         KODE=4                     ! average of all years and both landers
         Z4=VLPRES(KODE, DJU54)     ! current normalized pressure
         PZREF = PTOTAL*DBLE(Z4)    ! current total  P at 0 elevation
-        PCO2G = PCO2M+(PZREF-PTOTAL) ! all changes are pure  CO2
+        PGASG = PGASM+(PZREF-PTOTAL) ! all changes are pure condGas
       ELSEIF (KPREF.EQ.2) THEN  ! based on polar cap balance
         PZREF = PTOTAL - PCAP
-        PCO2G = PCO2M -PCAP        ! all changes are pure  CO2
+        PGASG = PGASM -PCAP        ! all changes are pure condGas
       ENDIF
 
       IF (LECL .AND. J5.EQ.1) THEN !  Daily, need only call once.
@@ -357,12 +361,12 @@ C
           AFNOW = AFROST
         ENDIF
         IF (LVFT) THEN          ! use variable frost temperature
-          TFNOW = CO2PT(1,PFACTOR*PCO2G) ! get local frost temperature
+          TFNOW = GASPT(1,PFACTOR*PGASG) ! get local frost temperature
         ELSE
           TFNOW = TFROST
         ENDIF
-        TATMIN = CO2PT(1,PFACTOR*PCO2G/2.71828) ! frost point for 1-layer atm
-C     print*,'J5,J4,PCO2G,TFNOW,TATMIN',J5,J4,PCO2G,TFNOW,TATMIN
+        TATMIN = GASPT(1,PFACTOR*PGASG/2.71828) ! frost point for 1-layer atm
+C     print*,'J5,J4,PGASG,TFNOW,TATMIN',J5,J4,PGASG,TFNOW,TATMIN
         IF (EFROST.GT.0.) THEN  ! use frost emissivity and albedo
           AVEE=FEMIS
           AVEA=AFNOW
@@ -496,7 +500,7 @@ C Get diffuse insolation, including twilight and first-order surface reflection
          ENDIF
 C     
 C     Set direct surface insolation
-         IF (COS2.GT.COSZLIM) THEN ! target is directly illuminated
+         IF (COS2.GT.COSZLIM .AND. COSI.GT. 0.) THEN ! target directly illumin.
            IF (EFROST .LE. 0.) THEN ! have a soil surface
              SELECT CASE (KOP)  !vvvvvvvvvvvvvvvvvvvvvvvv
              CASE(1)            !  Lambert

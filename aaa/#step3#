@@ -11,9 +11,9 @@
 # 2016mar07 HK Version 3.3.0
 # 2016mar22 HK Version 3.3.1  Go from Tcsh to Bash
 # 2016sep05 HK Version 3.4.2  Leave in Tsch
-# 2017feb25 HK Version 3.4.4   Go back to Bash and add test on Makefile
+# 2017feb25 HK Version 3.4.4  Go back to Bash and add test on Makefile
 # 2017apr07 HK Version 3.5.2
-# 2017oct03 HK Version 3.5.4
+# 2017oct05 HK Version 3.5.4
 #====================================
 
 FAM='/home/hkieffer/krc'    # family to be distributed
@@ -46,6 +46,8 @@ rm -f $RTOP/doc/*	# step2 to check dates on all .pdf versus .tex
 cd    $RTOP/doc		# latex x      la4 x     ps2pdf q.ps x.pdf
 ln -s /work2/Reprints/TherMod/Kieffer13krc.pdf . # JGR article as published
 ln -s /home/hkieffer/xtex/AGU/krc.pdf .      # journal article, with corrections
+ln -s /home/hkieffer/krc/Doc/TestIndex.txt  .	# Guide to some test runs
+ln -s /home/hkieffer/krc/Doc/VeRunHistory.tex  .  # Files on H3 and ASU
 ln -s /home/hkieffer/krc/Doc/helplist.tex  .	# Helplist source
 ln -s /home/hkieffer/krc/Doc/tun.tex .  	# include in helplist
 ln -s /home/hkieffer/krc/Doc/type52map.tex .	# include in helplist
@@ -177,6 +179,7 @@ ln -s /home/hkieffer/krc/src/evmono38.f .
 ln -s /home/hkieffer/krc/src/evmono3d.f .
 ln -s /home/hkieffer/krc/src/finterp.f . 
 ln -s /home/hkieffer/krc/src/fillmv.f .   # FILLx=B,I,L,R,D and MVx and MVD..
+ln -s /home/hkieffer/krc/src/gaspt8.f . 
 ln -s /home/hkieffer/krc/src/getpi4.f . 
 ln -s /home/hkieffer/krc/src/getpr8.f . 
 ln -s /home/hkieffer/src/for/util/idarch.F .
@@ -229,6 +232,7 @@ ln -s /home/hkieffer/krc/src/vlpres.f .
 ln -s /home/hkieffer/krc/src/white0.f .
 ln -s /home/hkieffer/krc/porb/ymd2j2.f .
 #----  not used in normal KRC build ---- 
+# ln -s /home/hkieffer/krc/src/sigma.f . # real*4 version used only in test
 #Nln -s /home/hkieffer/krc/src/tdayCN8.f . # Crank-Nicholsen version
 #Nln -s /home/hkieffer/krc/src/tridag8.f . # needed only for Crank-N. version
 #Nln -s /home/hkieffer/krc/src/tridah8.f . # needed only for Crank-N. version

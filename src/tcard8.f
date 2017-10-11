@@ -345,11 +345,12 @@ C
         WRITE (IOERR,388) 'JDISK',JDISK,NEW
         JDISK = NEW
       ENDIF
-      IF (JBARE.LE.0 ) THEN       ! never remove frost
-        NEW=9999      
-        WRITE (IOERR,388) 'JBARE',JBARE,NEW
-        JBARE = NEW
-      ENDIF
+c 2017sep25, should not need the following, as j5 is never 0 when relevent routines called
+C      IF (JBARE.LE.0 ) THEN       ! never remove frost
+C        NEW=9999      
+C        WRITE (IOERR,388) 'JBARE',JBARE,NEW
+C        JBARE = NEW
+C      ENDIF
       IF (N2.LT.32 .OR. N2.GT.MAXN2) THEN
         NEW = MAXN2/2           ! ensure within dimen
         WRITE (IOERR,388) 'N2',N2,NEW

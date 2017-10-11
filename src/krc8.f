@@ -38,21 +38,25 @@ C 2016aug12 HK Reset extreme numeric constants to Real*8 values. Use FILLMV set
 C              Allow redirect of monitor output. Improve return codes
 C 2016aug26 HK Automatically generate extensions for input and print files.
 C 2016oct03 HK Correct sense of azimuth in tlats. Move onePoint heading print.
-C 2017mar20 HK V 3.5.1  Incorporate eclipses and planetary heating
+C 2017mar20 HK V 3.5.1 Incorporate eclipses and planetary heating
+C 2017sep30 HK V 3.5.4 Error log name to the millisec to avoid failure on cluster
 C_End6789012345678901234567890123456789012345678901234567890123456789012_4567890
 
       REAL ELAPSED,TIMES(2)     ! declare the types of DTIME()
       INTEGER I,IQ, IRC,IRD,IRL,KONE,KREC
       INTEGER IOST              ! returned by OPEN
-      CHARACTER*80 CBUF         ! temporary use
+      CHARACTER*80 C80,CBUF         ! temporary use
       INTEGER*4 IZERO/0/        ! zero 
-      CHARACTER*1 BBUF          ! temporary use
+      INTEGER vals(8)           ! dummy arg for date_and_time
+      LOGICAL FEXIST            ! file exists
+      CHARACTER(LEN=12) CDATE,CTIME ! args for date_and_time
+C-      CHARACTER*1 BBUF          ! temporary use
       CHARACTER*25 SEPER        ! print separation line
       REAL TOTIME               ! Total Elapsed Time 
       REAL*8 QQ                 ! dummy  
       REAL*8 ZERO /0.0D0/       ! zero 
 
-      VERSIN='KRCv3.5.2'        ! set version number   12 bytes
+      VERSIN='KRCv3.5.4'        ! set version number   12 bytes
       KREC=84+20                ! number of bytes in TITLE +DAYTIM. Values from def. in KRCCOM
       IF (MOD(KREC,8).NE.0 .OR. MOD(N4KRC,2).NE.0) THEN 
         PRINT *,'BAD lengths',KREC,N4KRC
@@ -97,15 +101,29 @@ C      EXPMIN = 86.80D0          ! neg exponent that would almost cause underflo
       KREC=0                    ! ensure it has a storage location
       NRUN=0                    ! no output file yet
       NCASE=0                   ! initate this 
+      WRITE(IOPM,*) 'This is KRC:  ',VERSIN
+C 2017sep30 replace error-file name to nearest min with name to nearest millisec
+C- Lines are to redirect error to monitor, but IDB4 not yet known!
       CALL CATIME (CBUF)
       DAYTIM=CBUF(2:21)
-      CBUF=DAYTIM(10:11)//DAYTIM(6:8)//DAYTIM(13:14)//DAYTIM(16:17) ! ddMONhhmm
-      BBUF=CBUF(1:1)
-      IF (BBUF.EQ.' ') CBUF(1:1)='0' ! avoid a blank in the name for days 1:9
-      PRINT *,'DAYTIM = ',DAYTIM,'   errorfile = eLog',CBUF(1:9) !!!
-      OPEN (UNIT=IOERR,FILE='eLog'//CBUF,STATUS='NEW',err=9)! quit if open fails.
-
-      WRITE(IOPM,*) 'This is KRC:  ',VERSIN
+C-      IF (MODULO(IDB4,2) .EQ. 1) THEN ! no error file 
+C-         IOERR=IOPM              ! send error to monitor, no error file
+C-       ELSE                      ! create error file
+C      CBUF=DAYTIM(10:11)//DAYTIM(6:8)//DAYTIM(13:14)//DAYTIM(16:17) ! ddMONhhmm
+C      BBUF=CBUF(1:1)
+C     IF (BBUF.EQ.' ') CBUF(1:1)='0' ! avoid a blank in the name for days 1:9
+      FEXIST=.TRUE. ! Following delay loop in case many runs on cluster
+      IQ=-1
+      DO WHILE (FEXIST .EQV. .TRUE.) ! delay loop to ensure unique file name
+        CALL DATE_AND_TIME(CDATE,CTIME,C80,VALS) !  3rd arg  is not needed
+        IQ=IQ+1 ! how may loops of delay needed
+        C80='eLog'//CDATE//'T'//CTIME ! full file name, current directory
+        CALL NOWHITE(C80, I,CBUF) ! retain only printable characters
+        INQUIRE (FILE=CBUF(1:I),EXIST=FEXIST) ! does such a file already exist?
+      ENDDO
+      PRINT *,'DAYTIM = ',DAYTIM,IQ,'=IQ   errorfile = ',CBUF(1:I) 
+      OPEN (UNIT=IOERR,FILE=CBUF(1:I),STATUS='NEW',err=85) ! quit if open fails
+C-       END IF
 C                       open input and print files 
       WRITE (IOPM,*)' .inp and .prt will be added to your input names'
       WRITE (IOPM,*)' Defaults:  input = krc , output = input' 
@@ -270,6 +288,9 @@ C error section
  83   WRITE(IOERR,*)'KRC: error reading one-point header lines',FDISK 
       GOTO 9
  84   WRITE(IOERR,*)'KRC: unexpected EOF reading one-point header' 
+      GOTO 9
+ 85   PRINT *,'KRC: failed opening error log file'  
+      WRITE(IOPM,*)'KRC: failed opening error log file'  
       GOTO 9
 
       END
