@@ -1,25 +1,27 @@
-pro make99, id,prior, hold, maxk=maxk,all=all,get=get,ofile=ofile,comf=comf
+pro make99, id,prior, hold, maxk=maxk,all=all,get=get,ofile=ofile,comf=comf $
+,quiet=quiet
 ;_Titl MAKE99 Make/print list of user options for a program
 ; id	in.	String name of target program. usually should be  ptitl  . 
 ; CALLER SHOULD NOT MODIFY the next 2 arguments:
 ; prior both. 	Strarr(2) of prior id and string(all). Reads source if changed.
 ; hold	both.	Strarr of the guide. Stored between calls 
 ; maxk	in_	Maximum number of kons to store. Default=200; last digit 7=debug
-; all	in_	Two meanings: If an integer, then
-;		Completeness: +1 = include ;[ keys.
-;			      +2 = include ;- keys 
-;			      +4 = separate output line for each
-;			      +8 = List kons expanded into LaTeX
-;                            +16 = Use 2nd lines for full descriptions
-;                                  if they start with a ";^"
+; all	in_	Two meanings: If an integer, then bit-encoded
+;		  Completeness: +1 = include ;[ keys.
+;	  	                +2 = include ;- keys 
+;			        +4 = separate output line for each
+;			        +8 = List kons expanded into LaTeX
+;                              +16 = Use 2nd lines for full descriptions
+;                                    if they start with a ";^"
 ;	    		Except for +8, these take effect only when the source 
-;	    		file is being read.
-;            if +2 and +4 and not +8, then Print each kon in LaTeX
+;	    		  file is being read.
+;                       If +2 and +4 and not +8, then Print each kon in LaTeX
 ;		If an Intarr, then this is list of kons to be explained
 ; get	in_	If set, specific processing for GETP family
 ; ofile	in_     String name of file for output. must be at least 2 characters
-; comf	in.	String name of common-functions file to include
+; comf	in_	String name of common-functions file to include
 ;               or, if flag integer, will use kon99
+; quiet in_     Flag, little output to terminal
 ;_Desc
 ; Parses source file for an IDL program built to Kieffers standard 'kon' 
 ; skeleton. Builds an action guide as a string array (one per program) and
@@ -33,7 +35,7 @@ pro make99, id,prior, hold, maxk=maxk,all=all,get=get,ofile=ofile,comf=comf
 ; Requires that there is only one space between the words  "case kon of".
 ; Requires that there are no spaces in "kons=[" . Can handle up to 2-line array.
 ; "begin" and "&" on kon line are not printed 
-; Code for first character after the semi-colon
+; Code for first character after the first semi-colon
 ; ;o = obsolete, do not print ever
 ; ;- = do not print unless bit2 set
 ; ;+ = append to current output line text before ;= or ;<   unless bit4, 
@@ -77,21 +79,28 @@ pro make99, id,prior, hold, maxk=maxk,all=all,get=get,ofile=ofile,comf=comf
 ; 2008aug20 HK For distributions, allow top IDL level to have no .pro files
 ; 2010feb24 HK Fix  comf  to utilize string entry
 ; 2010sep21 HK Minor comment changes
-; 2013nov15 HK ensure link is defined 
-;_END
+; 2013nov15 HK Ensure link is defined 
+; 2015jul24 HK Add quiet option, usefull for KONLOOPFLOW calls
+; 2016jun20 HK Increase maxk default from 200
+; 2016nov12 HK Address existing output file of same name
+;_END        .comp make99
+
+; help, id,prior, hold, maxk,all,get,ofile,comf,quiet & print,'prior=',prior
 
 maxd=5                        ; maximum directory descent
 ;^^^^^^^^^^^^^  firm-code
 on_ioerror, bad
 
 errs='' & link=-1               ; ensure defined
-if not keyword_set(maxk) then maxk=200 
+if not keyword_set(maxk) then maxk=250 
+if not keyword_set(quiet) then quiet=0B 
 if n_elements(prior) lt 2 then prior=[';','0'] ; impossible idl routine name
+pin=prior[0]                                   ; use only for debugging
 dbug=(maxk mod 10) eq 7
 doget = keyword_set(get) ; do the special processing to GETP family
 nall=n_elements(all)
 if nall eq 0 then all=0  ; default is no special actions
-if nall le 1 then begin  ; was a bit-encoded contral
+if nall le 1 then begin  ; was a bit-encoded control
     bit1=      all     mod 2 eq 1 ;  +1 = include ;[ lines
     bit2=ishft(all,-1) mod 2 eq 1 ;  +2 = include ;- lines
     bit4=ishft(all,-2) mod 2 eq 1 ;  +4 = one item per line (ignore ;+)
@@ -104,15 +113,15 @@ endif else begin  ; was a list of kons to be printed
     sall=prior[1]               ; avoid doing construction again
 endelse
 ;;print,'bits',bit1,bit2,bit4,bit8,bit6
-
-if id ne prior[0] or (not bit8 and sall ne prior[1]) then begin 
+buf='' 
+if id ne prior[0] or (not bit8 and (sall ne prior[1]) ) then begin 
 ;;print,'Construction: id,sall=',id,sall
 prior=[id,sall]
 
 ; ---------------------- start of construction ----------------------
 ; ------------------------------------------------------------------------
 ; ------------------------------------------------------------------------
-buf='' & buf2=''
+buf2=''
 sqo=''''                        ; single quote
 tab=string(9B)                  ; horizontal Tab character
 hold=strarr(maxk)
@@ -234,7 +243,7 @@ if key eq '[' and not bit1 then goto,next ; skip the [ key
 
 if bit6 or key eq 'n' or key eq 'N' then begin ; look for 2nd line
 ; will use next line, for coding simplicity, let all the tests execute and fail
-    READF,LUN,BUF2 & link=link+1
+    readf,lun,buf2 & link=link+1
     i1=strpos(buf2,';^')
     if i1 ge 0 and i1 lt 3 then begin ; if it is a comment only
         out=strmid(buf2,i1+2) ; use it
@@ -287,7 +296,7 @@ addtolist:
             buf=buf2
             use2=0B
         endif else begin
-            READF,LUN,BUF & link=link+1 ; next line
+            readf,lun,buf & link=link+1 ; next line
         endelse
         j1=0 ; start next line at the beginning 
         goto, addtolist
@@ -348,28 +357,38 @@ if n_elements(uu) ne k+1 then begin
     print,'Duplicates=',kkon[ii[uu[iu]]] ; the duplicate kon value
 endif
 free_lun,lun
+link=7000 ; indicate done reading
 
 endif  ; -------------------- end of construction -----------------
 ;-------------------------------------------------------------------------------
 ;-------------------------------------------------------------------------------
 
-
-
 ; print the holding array
 n= n_elements(hold) & k2=n-1
 if keyword_set(ofile) then ffile=ofile else ffile=''
-dot = strlen(ffile) le 1 ; to terminal
-if not dot then begin 
-    ffile=ffile+strtrim(all[0],2) ; make unique for way called
-    OPENW,lun,ffile,error=operr,/get_lun
-    if operr ne 0 then begin
-        print,'MAKE99: open ERROR # and file=',operr,ffile,strmessage(operr)
-        dot =1B
+dot = strlen(ffile) le 1 and not quiet ; output to terminal
+dof = strlen(ffile) gt 1 ; output to file
+if dof then begin 
+  ffile=ffile+strtrim(all[0],2) ; make unique for way called
+fagin:  openw,lun,ffile,error=operr,/get_lun
+  if operr ne 0 then begin
+    message,' file open ERROR',/con 
+    print,'ERROR#,file,message:',operr,' , ',ffile,' , ',strmessage(operr)
+    cd,current=cwd 
+    print,'Current dir =',cwd,' Fix Dir or Remove existing file' 
+    read,buf,prompt='CR=tryAgain or append; n=noFile s=stop > '
+    if buf eq 's' then stop ; .con will add an s
+    if buf ne 'n' then begin  ; append buf to file and try again
+      ffile=ffile+buf
+      goto,fagin
     endif
+    dot=1B
+    dof=0B
+  endif
 endif
 
-if dot then print,'..====================== ',id,' =======================..' $
- else  printf,lun,'..====================== ',id,' ===================..'
+if dot then print,'..====================== ',id,' =======================..' 
+if dof then printf,lun,'..====================== ',id,' ===================..'
 pat1=' '                        ; for line preceeding kons list
 pat2='\qi \at '                 ; to begin  each kon line
 sspace=['','....','...','..','.','',''] ; alignment, normal index is 1:5
@@ -392,11 +411,12 @@ if not bit8 then begin  ; print all kon once
             if i ge 0 then q=strmid(q,0,i)+'$>$'+strmid(q,i+1)
             i=strpos(q,'_')
             if i ge 0 then q=strmid(q,0,i)+'\_'+strmid(q,i+1)
-            if dot then print,pat2,q else printf,lun,pat2,q
+            if dot then print,pat2,q 
+            if dof then printf,lun,pat2,q
         endfor 
     endif else begin            ; in stored format
-        if dot then for k=0,k2 do print,hold[k] $ ; print guide 
-               else for k=0,k2 do printf,lun,hold[k]
+        if dot then for k=0,k2 do print,hold[k] ; print guide 
+        if dof then for k=0,k2 do printf,lun,hold[k]
     endelse                     ; format
 endif else begin ; print all kons. Should have done preceeding call with all=3
 skon=strarr(n)                  ; make list of kon as strings
@@ -407,10 +427,12 @@ if nall lt 2 then begin
         qq=hold[k]              ; copy line and remove the expected <
         i=strpos(qq,'<')
         if i gt 0 then qq=strmid(qq,0,i)+strmid(qq,i)
-        if dot then print,pat1 else printf,lun,pat1 ; before kons line
+        if dot then print,pat1 
+        if dof then printf,lun,pat1 ; before kons line
         i=strpos(qq,' &')       ; make any & compatible with LaTeX
         if i ge 0 then qq=strmid(qq,0,i+1)+' \&'+strmid(qq,i+2)
-        if dot then print,qq else printf,lun,qq                ; kons line
+        if dot then print,qq 
+        if dof then printf,lun,qq ; kons line
         i=strpos(hold[k],'[')   ; find start of kons list
         j=strpos(hold[k],']')   ; ended by ]
         jend=j
@@ -453,13 +475,14 @@ endif else begin                ; nall >=2
               else text='......... missing .........' ; missing
             i=strlen(q)         ; number of characters in this kon number
             q=q+sspace[i]+' '+text & q=q[0] ; align output
-            if dot then print,q else printf,lun,q
+            if dot then print,q 
+            if dof then printf,lun,q
         endfor
     endelse                     ; nall >=2
 ;;stop
 endelse                         ; print all kons
 
-if not dot then begin 
+if dof then begin 
     free_lun,lun
     print,' OUTPUT is in >>>>>>>>> ',ffile
 endif
