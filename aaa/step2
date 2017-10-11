@@ -1,0 +1,68 @@
+###################################
+# Script and comments for making a distribution package of the KRC thermal
+# model file system. See the file AAREADME for additional description
+#  This step to ensure documentation products up to date
+# 2012 Nov 21 Hugh Kieffer 
+# 2013nov13, 2014mar03   HK Update
+###################################
+
+
+########## Ensure that the Guides are the latest version 
+
+cd ~/xtex/AGU/
+
+latex krcV3 			# process the .tex file	
+bibex krcV3 			# resolve the bibliograhy
+latex krcV3 			# process the .tex file	
+latex krcV3 			#   twice to resolve references	
+dvipdf krcV3.dvi		# and to pdf
+
+cd ~/krc/Doc
+
+latex hporb			# has references included
+latex hporb
+dvipdf hporb.dvi		# and to pdf
+
+latex PUG			# has references
+bibtex PUG
+latex PUG
+latex PUG
+dvipdf PUG.dvi          	# and to pdf
+tth <PUG.tex >PUG.html		# and to html  2014mar03 does not find .bbl
+
+latex helplist			# no refs
+dvipdf helplist.dvi		# and to pdf
+
+cd ~/krc/VER/
+
+latex Vtest
+dvipdf Vtest.dvi	# and to pdf
+
+cd ~/xtex/themis/
+
+latex cement 			# process the .tex file	
+latex cement			#   twice to resolve references
+dvipdf cement.dvi	# and to pdf
+
+cd ~/xtex/tes/krc/
+
+latex mkrc
+dvipdf mkrc.dvi
+latex HeatOfT 			# process the .tex file	
+latex HeatOfT			#   twice to resolve references
+dvipdf HeatOfT.dvi		# and to pdf
+
+exit #========================================================
+
+##########  template
+
+latex q 			# process the .tex file	
+bibtex q 			# get th references
+latex q				#   twice to resolve references
+latex q				#   
+dvipdfm q.dvi			# and to pdf
+
+### obsolete
+cd ~/krc  
+latex port 
+dvipdfm port.dvi

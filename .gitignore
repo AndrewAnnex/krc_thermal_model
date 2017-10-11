@@ -1,0 +1,7 @@
+# Documentation
+*.pdf
+*.ppt
+*.html
+
+# Output
+*.bin5
