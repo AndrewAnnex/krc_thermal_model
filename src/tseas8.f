@@ -37,6 +37,7 @@ C 2014feb25 HK Specify most variables as *4  Untabify and justify
 C 2014mar10 HK Make  REAL*8  version 
 C 2014may16:aug22 HK Incorporate option of far-field file for slopes
 C 2016oct10 HK Make print after TFAR optional
+C 2017mar05 HK Improve notice when there is an error
 C_End6789012345678901234567890123456789012345678901234567890123456789012_4567890
 
 C 
@@ -77,8 +78,9 @@ C CPU_TIME is real with resolution microseconds
       ENDIF
 
       IF (LOPN3) THEN           ! prepare for fff each season           !
-        IF (LATM .AND. MINT .NE. 3) THEN ! If atmosphere
+        IF (LATM .AND. MINT .NE. 3) THEN ! If atmosphere, MINT is in /UNITS/
           IRET=41                ! then require fff atm, needed in TDAY
+          WRITE(IOERR,*)'Case',NCASE,' Atm. needed in Far-field file'
           GOTO 9
         ENDIF
         CALL TFAR8(2,1,DELP, FTS,FTP,FTA) 

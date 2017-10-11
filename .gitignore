@@ -2,6 +2,7 @@
 *.pdf
 *.ppt
 *.html
+*.odp
 
 # Output
 *.bin5

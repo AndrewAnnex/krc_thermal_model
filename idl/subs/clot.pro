@@ -108,7 +108,7 @@ if siz[0] lt 2 and not dop then begin
    return
 endif
 nx=siz[1]
-if siz[0] ge 2 then ny=siz[2] else ny=siz[1]
+if siz[0] ge 2 then ny=siz[2] else ny=1
 
 npa=n_params() ; 
 if npa lt 2 then txt=strtrim(indgen(ny),2) ; curve numbers

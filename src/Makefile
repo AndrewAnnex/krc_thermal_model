@@ -12,6 +12,7 @@
 # 2017feb23 HK Clarify differences between H3 and Distribution builds 
 # lines containing  #<>H should be active if and only if on Hughs computer
 # lines containing  #<>D should be active if and only if building a Distribution
+# 2017mar15 HK include eclipse routines
 ####################################################
 
 SHELL=/bin/csh
@@ -26,7 +27,7 @@ LD=gfortran
 #------------- Libraries -------------------------
 # Pointers to top of libraries to use. 
 HHKLIB=/home/hkieffer/linux/lib  # available only non H3
- KRCLIB=.                         #<>D  Only for distribution
+KRCLIB=.                         #<>D  Only for distribution
 
 #SYSLIBS = -L /usr/lib64  -lg2c -lgfortran -lc -lm    ## ? lgfortran 
  SYSLIBS = -L -lgfortran -lc -lm 
@@ -34,15 +35,15 @@ HHKLIB=/home/hkieffer/linux/lib  # available only non H3
 # LDFLAGS= -fdump-tree-slim  # used, but does nothing 2014mar11
 
 # Library directories that always are searched
-#LIBDIRS=-L$(HHKLIB)                    #<>H
- LIBDIRS_DEV=-L$(KRCLIB) -L$(HHKLIB)    #<>D
- LIBDIRS_PROD=-L$(KRCLIB)               #<>D
+# LIBDIRS=-L$(HHKLIB)                     #<>H
+ LIBDIRS_DEV=-L$(KRCLIB) -L$(HHKLIB)   #<>D
+ LIBDIRS_PROD=-L$(KRCLIB)              #<>D
 
 #  Special Kieffer library groups
 #HLIB=-lhk_fmath -lhk_fgeom -lhk_futil -lhk_fchar  ##2-lhk_fNumRec # -lhk_rad
 
-#CLIB=/home/hkieffer/linux/lib/libhk_cisis.a    #<>H
- CLIB=./cfiles/libhk_cisis.a    # -lhk_crest    #<>D
+# CLIB=/home/hkieffer/linux/lib/libhk_cisis.a    #<>H
+CLIB=./cfiles/libhk_cisis.a    # -lhk_crest    #<>D
 
 #------------- system dependencies -------------
 
@@ -50,7 +51,8 @@ OBJ8 = krc8.o tseas8.o tlats8.o tday8.o tcard8.o tprint8.o tdisk8.o tun8.o \
  epred8.o tint8.o albvar8.o vlpres.o porb08.o porbit.o orbit8.o eccanom8.o \
  alsubs.o deding28.o seasalb.o seastau.o readtxt360.o finterp.o evmono38.o \
  climtau.o binf5.o bigend.o rotmdp8.o vadddp8.o cocodp8.o readzone.o \
-  catime.o white1.o ksubs8.o tfar8.o cubuterp8.o sigma8.o fillmv.o
+ catime.o white1.o ksubs8.o tfar8.o cubuterp8.o sigma8.o fillmv.o \
+ eclipse.o tfine8.o dspline.o dsplint.o evmono3d.o strumi.o strumr8.o
 
 # PORB double precision
 OBJP3 = porbmn.o porbio.o ephemr.o ymd2j2.o porbig.o porbit.o porbel.o \
@@ -59,10 +61,13 @@ OBJP3 = porbmn.o porbio.o ephemr.o ymd2j2.o porbig.o porbit.o porbel.o \
 
 # testing
 OBJT = testrou.o alsubs.o averag.o aveyear.o bigend.o bigend1.o binf5.o \
- catime.o datime.o climtau.o dpythag.o dspline.o dsplint.o dsvbksb.o \
- dsvdcmp.o evrf4.o hratlsq.o  kratlsq.o ratval.o spline.o splint.o fillmv.o \
- white1.o tdif3.o cubuterp8.o tfar8.o sigma8.o randomn.o \
- rotmdp8.o vadddp8.o m2eul.o getpr8.o qtlats.o
+ catime.o climtau.o cubuterp8.o datime.o dpythag.o dspline.o dsplint.o \
+ dsvbksb.o dsvdcmp.o eclipse.o evmono38.o evmono3d.o evrf4.o \
+ fillmv.o getpi4.o getpr8.o hratlsq.o  kratlsq.o m2eul.o  qtlats.o \
+ randomn.o ratval.o rotmdp8.o spline.o splint.o \
+ sigma8.o strumi.o strumr8.o tdif3.o tfar8.o \
+ vadddp8.o white1.o
+
 # r2r.o d2d.o d2md.o 
 
 OBJT1 = test8.o deding2.o deding28.o
@@ -95,14 +100,14 @@ test1: $(OBJT1)   # -
 	$(FC) $(LDFLAGS) $(LIBDIRS_DEV) -o $@ $(OBJT1) \
 	$(CLIB) $(SYSLIBS)
 
-
 # make routines for program dependencies 
 #
 krc8.o:       krc8.f krcc8m.f latc8m.f dayc8m.f unic8m.f filc8m.f hatc8m.f
 tseas8.o:   tseas8.f krcc8m.f latc8m.f          unic8m.f          hatc8m.f porbc8m.f
-tlats8.o:   tlats8.f krcc8m.f latc8m.f dayc8m.f unic8m.f          hatc8m.f porbc8m.f
+tlats8.o:   tlats8.f krcc8m.f latc8m.f dayc8m.f unic8m.f filc8m.f hatc8m.f porbc8m.f
 tday8.o:     tday8.f krcc8m.f          dayc8m.f unic8m.f filc8m.f hatc8m.f porbc8m.f
-tcard8.o:   tcard8.f krcc8m.f latc8m.f dayc8m.f unic8m.f filc8m.f 
+tfine8.o:   tfine8.f krcc8m.f          dayc8m.f unic8m.f          hatc8m.f
+tcard8.o:   tcard8.f krcc8m.f latc8m.f dayc8m.f unic8m.f filc8m.f hatc8m.f
 tprint8.o: tprint8.f krcc8m.f latc8m.f dayc8m.f unic8m.f filc8m.f 
 tdisk8.o:   tdisk8.f krcc8m.f latc8m.f dayc8m.f unic8m.f filc8m.f hatc8m.f
 tfar8.o:     tfar8.f krcc8m.f                   unic8m.f filc8m.f 
@@ -113,7 +118,7 @@ seasalb.o: seasalb.f                            unic8m.f filc8m.f
 seastau.o: seastau.f                            unic8m.f filc8m.f
 climtau.o: climtau.f                            unic8m.f filc8m.f
 albvar8.o: albvar8.f krcc8m.f
-tint8.o:     tint8.f krcc8m.f   
+tint8.o:     tint8.f krcc8m.f 
 ephemr.o:   ephemr.f           porbc8m.f
 porb08.o:   porb08.f           porbc8m.f        unic8m.f
 porbig.o:   porbig.f           porbc8m.f
@@ -131,8 +136,11 @@ binf5.o: binf5.F  # uses  B2B  BIGEND  CATIME WHITE1  PIO_system
 cubuterp8.o: cubuterp8.f
 deding28.o: deding28.f
 eccanom8.o: eccanom8.f
+eclipse.o: eclipse.f 
 evmono38.o: evmono38.f
+evmono3d.o: evmono3d.f
 finterp.o: finterp.f
+getpi4.o: getpi4.f
 getpr8.o: getpr8.f
 jdate.o:  jdate.f  
 julday.o:  julday.f  
@@ -145,6 +153,8 @@ randomn.o: randomn.f # used to test sigma8
 #r2i2s.o: r2i2s.f
 sigma8.o: sigma8.f   # used for debug of cubuterp
 spcrev.o: spcrev.f 
+strumi.o: strumi.f
+strumr8.o: strumr8.f
 tridag8.o: tridah8.f   # uses prior partial solution
 vlpres.o: vlpres.f
 white0.o: white0.f

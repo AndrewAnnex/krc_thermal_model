@@ -12,6 +12,7 @@
 # 2016mar22 HK Version 3.3.1  Go from Tcsh to Bash
 # 2016sep05 HK Version 3.4.2  Leave in Tsch
 # 2017feb25 HK Version 3.4.4   Go back to Bash and add test on Makefile
+# 2017apr07 HK Version 3.5.2
 #====================================
 
 FAM='/home/hkieffer/krc'    # family to be distributed
@@ -93,10 +94,14 @@ ln -s /home/hkieffer/krc/Doc/DV3/V34UG.pdf .   # Guide to v3.4
 ln -s /home/hkieffer/krc/Doc/DV3/slopes.tex . # monolog on slopes
 ln -s /home/hkieffer/krc/Doc/DV3/slopes.pdf .
 ln -s /home/hkieffer/krc/Doc/DV3/Beaming.tex . # thermal beaming
+ln -s /home/hkieffer/krc/Doc/v35/eclipse.tex . # V 3.5
+ln -s /home/hkieffer/krc/Doc/v35/eclipse.pdf . # V 3.5
+ln -s /home/hkieffer/ppt/mars/krc/KRC344.odp . # 2017mar07 talk at ASU
+ln -s /home/hkieffer/ppt/mars/krc/KRC344.pdf .
 echo "Done copy to doc"
 
-rm -f  $RTOP/run/      # for input files and many print files
-rm -f  $RTOP/run/out   # normally empty
+rm -f  $RTOP/run/*      # for input files and many print files
+rm -f  $RTOP/run/out/*   # normally empty
 cd     $RTOP/run       # for input files and many print files
 ln -s /home/hkieffer/krc/tes/master.inp .    # 19 latitudes, default parameters
 ln -s /home/hkieffer/krc/tes/master.prt .  
@@ -126,7 +131,8 @@ ln -s /home/hkieffer/krc/tes/zoneX.tab .  # zone table, result close to default
 ln -s /home/hkieffer/krc/tes/zoneZ.tab .  # zone table, exercise options
 ln -s /home/hkieffer/krc/tes/valb1.tab .  # season-variable albedo
 ln -s /home/hkieffer/krc/tes/beamK.inp .  # Grid of slopes
-ln -s /home/hkieffer/krc/tes/342v3t.inp .  # 8 test cases
+ln -s /home/hkieffer/krc/Eur/351v3t.inp .  # 8 test cases
+ln -s /home/hkieffer/krc/Eur/eurD.inp .    #  test new things
 echo "Done copy to run"
 
 rm -f $RTOP/src/*
@@ -144,6 +150,7 @@ ln -s /home/hkieffer/krc/porb/porbc8m.f
 ln -s /home/hkieffer/krc/porb/porbx8m.f
 #- ln -s /home/hkieffer/krc/src/krccom.inc .
 #- ln -s /home/hkieffer/krc/tes/latcom.inc .
+# next section alpabetic routine name
 ln -s /home/hkieffer/krc/src/albvar8.f .
 ln -s /home/hkieffer/krc/src/alsubs.f .
 ln -s /home/hkieffer/krc/src/bigend.f .
@@ -154,15 +161,21 @@ ln -s /home/hkieffer/krc/src/climtau.f .
 ln -s /home/hkieffer/krc/src/cubuterp8.f .
 #ln -s /home/hkieffer/krc/src/datime.f .
 ln -s /home/hkieffer/krc/src/deding28.f .
+ln -s /home/hkieffer/src/for/NumRec/dspline.f .
+ln -s /home/hkieffer/src/for/NumRec/dsplint.f .
 #4ln -s /home/hkieffer/krc/porb/eccanom.f .
 ln -s /home/hkieffer/krc/porb/eccanom8.f  .
+ln -s /home/hkieffer/krc/src/eclipse.f  .
 #4ln -s /home/hkieffer/krc/porb/ephemr4.f .
 ln -s /home/hkieffer/krc/porb/ephemr.f .
 ln -s /home/hkieffer/krc/src/epred8.f .
 #4ln -s /home/hkieffer/krc/porb/evmono.f .
 ln -s /home/hkieffer/krc/src/evmono38.f .
+ln -s /home/hkieffer/krc/src/evmono3d.f .
 ln -s /home/hkieffer/krc/src/finterp.f . 
 ln -s /home/hkieffer/krc/src/fillmv.f .   # FILLx=B,I,L,R,D and MVx and MVD..
+ln -s /home/hkieffer/krc/src/getpi4.f . 
+ln -s /home/hkieffer/krc/src/getpr8.f . 
 ln -s /home/hkieffer/src/for/util/idarch.F .
 ln -s /home/hkieffer/krc/src/krc8.f .
 ln -s /home/hkieffer/krc/src/ksubs8.f .  # AVEDAY  AVEYEAR  CO2PT  SIGMA
@@ -196,10 +209,13 @@ ln -s /home/hkieffer/krc/src/seasalb.f .
 ln -s /home/hkieffer/krc/src/seastau.f .
 ln -s /home/hkieffer/krc/src/sigma8.f .
 ln -s /home/hkieffer/krc/porb/spcrev.f .
+ln -s /home/hkieffer/krc/src/strumi.f .
+ln -s /home/hkieffer/krc/src/strumr8.f .
 ln -s /home/hkieffer/krc/src/tcard8.f .
 ln -s /home/hkieffer/krc/src/tday8.f .
 ln -s /home/hkieffer/krc/src/tfar8.f .
 ln -s /home/hkieffer/krc/src/tdisk8.f .
+ln -s /home/hkieffer/krc/src/tfine8.f .
 ln -s /home/hkieffer/krc/src/tint8.f .
 ln -s /home/hkieffer/krc/src/tlats8.f .
 ln -s /home/hkieffer/krc/src/tprint8.f .
@@ -299,7 +315,7 @@ ln -s /home/hkieffer/lunar/DE/chrcom.inc .
 ln -s /home/hkieffer/lunar/DE/ephcom.inc .
 ln -s /home/hkieffer/rad/mie/deding2.f .
 ln -s /home/hkieffer/lunar/DE/dpephem.f .
-ln -s /home/hkieffer/src/for/NumRec/dspline.f .
+ln -s /home/hkieffer/src/for/NumRec/dspline.f . # spline set needed in 2 places
 ln -s /home/hkieffer/src/for/NumRec/dsplint.f .
 ln -s /home/hkieffer/tes/mod/elevate.f .
 ln -s /home/hkieffer/src/for/util/eqoftime.f .
@@ -324,6 +340,7 @@ ln -s /home/hkieffer/lunar/DE/split.f .
 ln -s /home/hkieffer/lunar/DE/state.f .
 ln -s /home/hkieffer/tes/mod/tifov.f .
 ln -s /home/hkieffer/krc/src/vlpres.f .
+# above section alpabetic routine name
 ln -s /home/hkieffer/tes/mod/errcom.inc .
 ln -s /home/hkieffer/tes/mod/modcom.inc .
 ln -s /home/hkieffer/lunar/DE/stacom.inc .
